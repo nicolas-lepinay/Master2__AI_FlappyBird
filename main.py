@@ -17,14 +17,14 @@ DRAW_LINES = False
 WIN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 pygame.display.set_caption("Flappy Bird")
 
-pipe_img = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs","pipe.png")).convert_alpha())
-bg_img = pygame.transform.scale(pygame.image.load(os.path.join("imgs","bg.png")).convert_alpha(), (600, 900))
-bird_images = [pygame.transform.scale2x(pygame.image.load(os.path.join("imgs","bird" + str(x) + ".png"))) for x in range(1,4)]
-base_img = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs","base.png")).convert_alpha())
+pipe_img = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", "pipe.png")).convert_alpha())
+bg_img = pygame.transform.scale(pygame.image.load(os.path.join("assets", "bg.png")).convert_alpha(), (600, 900))
+bird_images = [pygame.transform.scale2x(pygame.image.load(os.path.join("assets", "bird" + str(x) + ".png"))) for x in range(1, 4)]
+base_img = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", "base.png")).convert_alpha())
 
 gen = 0
 
-# 🐤 BIRD CLASS
+# 🐤
 class Bird:
     MAX_ROTATION = 25
     IMGS = bird_images
@@ -91,10 +91,10 @@ class Bird:
     def get_mask(self):
         return pygame.mask.from_surface(self.img)
 
-# 🧱 PIPE CLASS
+# 🧱
 class Pipe:
     GAP = 200
-    VEL = 14
+    VEL = 13
 
     def __init__(self, x):
         self.x = x
@@ -137,7 +137,7 @@ class Pipe:
             return True
         return False
 
-# ⛰️ BASE CLASS
+# ⛰️
 class Base:
     VEL = 5
     WIDTH = base_img.get_width()
@@ -162,12 +162,26 @@ class Base:
         win.blit(self.IMG, (self.x1, self.y))
         win.blit(self.IMG, (self.x2, self.y))
 
+# 💾
+class BestGenomeSaver(neat.reporting.BaseReporter):
+    def __init__(self, filename="best.pickle"):
+        super().__init__()
+        self.best_fitness_so_far = float("-inf")
+        self.filename = filename
+
+    def post_evaluate(self, config, population, species, best_genome):
+        if best_genome.fitness > self.best_fitness_so_far:
+            self.best_fitness_so_far = best_genome.fitness
+            print(f"\n🏆 NEW BEST FITNESS : {self.best_fitness_so_far:.2f}. Saving best genome to {self.filename}...\n")
+            with open(self.filename, "wb") as f:
+                pickle.dump(best_genome, f)
+
 def blitRotateCenter(surf, image, topleft, angle):
     rotated_image = pygame.transform.rotate(image, angle)
     new_rect = rotated_image.get_rect(center = image.get_rect(topleft = topleft).center)
     surf.blit(rotated_image, new_rect.topleft)
 
-# 🖼️ DRAW WINDOW FUNCTION
+# 🖼️
 def draw_window(win, birds, pipes, base, score, gen, pipe_ind):
     if gen == 0:
         gen = 1
@@ -309,7 +323,9 @@ def run(config_path):
     p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
+
+    saver = BestGenomeSaver(filename="best.pickle")
+    p.add_reporter(saver)
 
     winner = p.run(eval_genomes, 500)
     print('\nBest genome:\n{!s}'.format(winner))
