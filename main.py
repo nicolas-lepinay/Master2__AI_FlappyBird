@@ -23,7 +23,7 @@ bird_images = [pygame.transform.scale2x(pygame.image.load(os.path.join("assets",
 base_img = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", "base.png")).convert_alpha())
 
 gen = 0
-TRAINING = True
+TRAINING = False
 
 # 🐤
 class Bird:
@@ -95,7 +95,7 @@ class Bird:
 # 🧱
 class Pipe:
     GAP = 200
-    VEL = 13
+    VEL = 12.5
 
     def __init__(self, x):
         self.x = x
@@ -111,7 +111,7 @@ class Pipe:
         self.set_height()
 
     def set_height(self):
-        self.height = random.randrange(100, 400)
+        self.height = random.randrange(120, 380)
         self.top = self.height - self.PIPE_TOP.get_height()
         self.bottom = self.height + self.GAP
 
