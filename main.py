@@ -23,6 +23,7 @@ bird_images = [pygame.transform.scale2x(pygame.image.load(os.path.join("assets",
 base_img = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", "base.png")).convert_alpha())
 
 gen = 0
+TRAINING = False
 
 # 🐤
 class Bird:
@@ -110,7 +111,7 @@ class Pipe:
         self.set_height()
 
     def set_height(self):
-        self.height = random.randrange(50, 450)
+        self.height = random.randrange(100, 400)
         self.top = self.height - self.PIPE_TOP.get_height()
         self.bottom = self.height + self.GAP
 
@@ -311,6 +312,90 @@ def eval_genomes(genomes, config):
             pickle.dump(nets[0],open("best.pickle", "wb"))
             break'''
 
+def test_best_genome(config_path):
+    """
+    Charge le meilleur génome sauvegardé dans 'best.pickle' et lance une simulation
+    où un seul oiseau, contrôlé par le réseau du meilleur génome, joue le jeu.
+    """
+    # Charger la configuration NEAT (utilisez le même fichier config-feedforward.txt)
+    config = neat.config.Config(
+        neat.DefaultGenome,
+        neat.DefaultReproduction,
+        neat.DefaultSpeciesSet,
+        neat.DefaultStagnation,
+        config_path
+    )
+
+    # Charger le meilleur génome sauvegardé
+    with open("best.pickle", "rb") as f:
+        best_genome = pickle.load(f)
+
+    # Créer le réseau neural associé à ce génome
+    net = neat.nn.FeedForwardNetwork.create(best_genome, config)
+
+    # Initialiser le jeu avec un seul oiseau
+    bird = Bird(230, 350)
+    base = Base(FLOOR)
+    pipes = [Pipe(700)]
+    score = 0
+
+    clock = pygame.time.Clock()
+
+    run = True
+    while run:
+        clock.tick(30)
+
+        # Gestion des événements (fermeture de la fenêtre)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+                quit()
+
+        # Choisir quel tuyau servir d'input (ici, pour la simplicité, on prend le premier)
+        pipe_ind = 0
+        if len(pipes) > 1 and bird.x > pipes[0].x + pipes[0].PIPE_TOP.get_width():
+            pipe_ind = 1
+
+        # Laisser le réseau décider de l'action à faire
+        output = net.activate((bird.y, abs(bird.y - pipes[pipe_ind].height), abs(bird.y - pipes[pipe_ind].bottom)))
+        if output[0] > 0.5:
+            bird.jump()
+
+        # Déplacer l'oiseau, le sol et les tuyaux
+        bird.move()
+        base.move()
+
+        rem = []
+        add_pipe = False
+        for pipe in pipes:
+            pipe.move()
+            # Vérifier collision
+            if pipe.collide(bird, WIN):
+                run = False  # On arrête la partie en cas de collision
+            # Si le tuyau est passé
+            if not pipe.passed and pipe.x < bird.x:
+                pipe.passed = True
+                add_pipe = True
+            # Retirer les tuyaux hors de l'écran
+            if pipe.x + pipe.PIPE_TOP.get_width() < 0:
+                rem.append(pipe)
+
+        if add_pipe:
+            score += 1
+            pipes.append(Pipe(WIN_WIDTH))
+
+        for r in rem:
+            pipes.remove(r)
+
+        # Vérifier si l'oiseau touche le sol ou sort de l'écran
+        if bird.y + bird.img.get_height() >= FLOOR or bird.y < -50:
+            run = False
+
+        draw_window(WIN, [bird], pipes, base, score, gen, pipe_ind)
+
+    print("Test terminé. Score final :", score)
+
 def run(config_path):
     config = neat.config.Config(
         neat.DefaultGenome,
@@ -333,7 +418,10 @@ def run(config_path):
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "config-feedforward.txt")
-    run(config_path)
+    if TRAINING:
+        run(config_path)
+    else:
+        test_best_genome(config_path)
 
 
 
