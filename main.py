@@ -23,7 +23,7 @@ bird_images = [pygame.transform.scale2x(pygame.image.load(os.path.join("assets",
 base_img = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", "base.png")).convert_alpha())
 
 gen = 0
-TRAINING = False
+TRAINING = True
 
 # 🐤
 class Bird:
@@ -412,7 +412,7 @@ def run(config_path):
     saver = BestGenomeSaver(filename="best.pickle")
     p.add_reporter(saver)
 
-    winner = p.run(eval_genomes, 500)
+    winner = p.run(eval_genomes, 1000)
     print('\nBest genome:\n{!s}'.format(winner))
 
 if __name__ == "__main__":
