@@ -1,8 +1,8 @@
 import neat
 import pickle
 import pygame
-from flappy_bird_ai.game import Bird, Pipe, Base
-from flappy_bird_ai.utils import FLOOR, WIN_WIDTH, WIN
+from game import Bird, Pipe, Base
+from utils import FLOOR, WIN_WIDTH, WIN
 
 class BestGenomeSaver(neat.reporting.BaseReporter):
     def __init__(self, filename="best.pickle"):

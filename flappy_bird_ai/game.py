@@ -1,5 +1,5 @@
 import pygame
-from flappy_bird_ai.utils import WIN_WIDTH, WIN_HEIGHT, FLOOR, blitRotateCenter
+from utils import WIN_WIDTH, WIN_HEIGHT, FLOOR, blitRotateCenter
 import random
 
 # 🐤

@@ -1,7 +1,7 @@
 import pygame
 import neat
 import os
-from flappy_bird_ai.ai import BestGenomeSaver, eval_genomes, test_best_genome, play_vs_ai
+from ai import BestGenomeSaver, eval_genomes, test_best_genome, play_vs_ai
 
 pygame.init()
 WIN = pygame.display.set_mode((570, 800))
