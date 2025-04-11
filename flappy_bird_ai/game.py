@@ -188,10 +188,14 @@ def draw_window_vs_ai(win, player, ai_bird, pipes, base, score_player, score_ai)
     ai_bird.draw(win)
 
     # Afficher les scores
+    """
     score_label_player = STAT_FONT.render("Joueur : " + str(score_player), 1, (0, 0, 255)) # Couleur bleue pour le joueur
     win.blit(score_label_player, (10, 10))
 
     score_label_ai = STAT_FONT.render("IA : " + str(score_ai), 1, (255, 0, 0)) # Couleur rouge pour l'IA
     win.blit(score_label_ai, (10, 50))
+    """
+    score_label = STAT_FONT.render("Score : " + str(score_ai),1,(255,255,255))
+    win.blit(score_label, (WIN_WIDTH - score_label.get_width() - 15, 10))
 
     pygame.display.update()

@@ -4,17 +4,27 @@ import pygame
 from game import Bird, Pipe, Base
 from utils import FLOOR, WIN_WIDTH, WIN
 
+gen = 0
+
 class BestGenomeSaver(neat.reporting.BaseReporter):
-    def __init__(self, filename="best.pickle"):
+    def __init__(self, save_dir="learning"):
+        import os
         super().__init__()
         self.best_fitness_so_far = float("-inf")
-        self.filename = filename
+        self.save_dir = save_dir
+        os.makedirs(self.save_dir, exist_ok = True)  # S'assurer que le dossier existe
 
     def post_evaluate(self, config, population, species, best_genome):
+        import os
         if best_genome.fitness > self.best_fitness_so_far:
             self.best_fitness_so_far = best_genome.fitness
-            print(f"\n🏆 NEW BEST FITNESS : {self.best_fitness_so_far:.2f}. Saving best genome to {self.filename}...\n")
-            with open(self.filename, "wb") as f:
+            rounded_fitness = int(round(best_genome.fitness))
+
+            filename = f"model_with_fitness_{rounded_fitness}.pickle"
+            save_path = os.path.join(self.save_dir, filename)
+
+            print(f"\n🏆 NEW BEST FITNESS : {self.best_fitness_so_far:.2f}. Saving best genome to {save_path}...\n")
+            with open(save_path, "wb") as f:
                 pickle.dump(best_genome, f)
 
 def eval_genomes(genomes, config):
@@ -94,7 +104,7 @@ def eval_genomes(genomes, config):
                 ge.pop(birds.index(bird))
                 birds.pop(birds.index(bird))
 
-        from .game import draw_window # Import localement
+        from game import draw_window # Import localement
         draw_window(WIN, birds, pipes, base, score, gen, pipe_ind)
 
     return # Implicit return
@@ -108,7 +118,7 @@ def test_best_genome(config_path):
         config_path
     )
 
-    with open("best.pickle", "rb") as f:
+    with open("best_model.pickle", "rb") as f:
         best_genome = pickle.load(f)
 
     net = neat.nn.FeedForwardNetwork.create(best_genome, config)
@@ -181,10 +191,10 @@ def play_vs_ai(config_path):
 
     # Charger le meilleur génome de l'IA
     try:
-        with open("best.pickle", "rb") as f:
+        with open("best_model.pickle", "rb") as f:
             best_genome = pickle.load(f)
     except FileNotFoundError:
-        print("Erreur : Le fichier best.pickle n'a pas été trouvé. Veuillez d'abord entraîner l'IA.")
+        print("Erreur : Le fichier best_model.pickle n'a pas été trouvé. Veuillez d'abord entraîner l'IA.")
         return
 
     # Créer le réseau neural de l'IA
@@ -272,7 +282,8 @@ def play_vs_ai(config_path):
         from game import draw_window_vs_ai # Import localement
         draw_window_vs_ai(WIN, player, ai_bird, pipes, base, score_player, score_ai)
 
-    pygame.quit()
-    quit()
+    #pygame.quit()
+    #quit()
+    play_vs_ai(config_path)
 
 
