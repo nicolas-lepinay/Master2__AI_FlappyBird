@@ -8,15 +8,19 @@ class Bird:
     ROT_VEL = 20
     ANIMATION_TIME = 5
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, is_player = False):
         self.x = x
         self.y = y
+        self.is_player = is_player
         self.tilt = 0
         self.tick_count = 0
         self.vel = 0
         self.height = self.y
         self.img_count = 0
-        self.IMGS = [pygame.transform.scale2x(pygame.image.load("assets/bird" + str(x) + ".png").convert_alpha()) for x in range(1, 4)]
+        if self.is_player:
+            self.IMGS = [pygame.transform.scale2x(pygame.image.load("assets/bird_alt" + str(x) + ".png").convert_alpha()) for x in range(1, 4)]
+        else:
+            self.IMGS = [pygame.transform.scale2x(pygame.image.load("assets/bird" + str(x) + ".png").convert_alpha()) for x in range(1, 4)]
         self.img = self.IMGS[0]
 
     def jump(self):
@@ -85,6 +89,8 @@ class Pipe:
         self.PIPE_BOTTOM = pygame.transform.scale2x(pygame.image.load("assets/pipe.png").convert_alpha())
 
         self.passed = False
+        self.passed_player = False # vs. AI
+        self.passed_ai = False     # vs. AI
         self.set_height()
 
     def set_height(self):
@@ -142,7 +148,7 @@ class Base:
 
 # 🖼️
 def draw_window(win, birds, pipes, base, score, gen, pipe_ind):
-    from .utils import bg_img, STAT_FONT, DRAW_LINES # Import localement pour éviter les dépendances circulaires
+    from utils import bg_img, STAT_FONT, DRAW_LINES # Import localement pour éviter les dépendances circulaires
     if gen == 0:
         gen = 1
     win.blit(bg_img, (0,0))
@@ -167,5 +173,25 @@ def draw_window(win, birds, pipes, base, score, gen, pipe_ind):
     win.blit(score_label, (WIN_WIDTH - score_label.get_width() - 15, 10))
     win.blit(gen_label, (10, 10))
     win.blit(alive_label, (10, 50))
+
+    pygame.display.update()
+
+def draw_window_vs_ai(win, player, ai_bird, pipes, base, score_player, score_ai):
+    from utils import bg_img, STAT_FONT # Import localement pour éviter les dépendances circulaires
+    win.blit(bg_img, (0, 0))
+
+    for pipe in pipes:
+        pipe.draw(win)
+
+    base.draw(win)
+    player.draw(win)
+    ai_bird.draw(win)
+
+    # Afficher les scores
+    score_label_player = STAT_FONT.render("Joueur : " + str(score_player), 1, (0, 0, 255)) # Couleur bleue pour le joueur
+    win.blit(score_label_player, (10, 10))
+
+    score_label_ai = STAT_FONT.render("IA : " + str(score_ai), 1, (255, 0, 0)) # Couleur rouge pour l'IA
+    win.blit(score_label_ai, (10, 50))
 
     pygame.display.update()

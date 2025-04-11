@@ -1,7 +1,7 @@
 import pygame
 import neat
 import os
-from flappy_bird_ai.ai import BestGenomeSaver, eval_genomes, test_best_genome
+from flappy_bird_ai.ai import BestGenomeSaver, eval_genomes, test_best_genome, play_vs_ai
 
 pygame.init()
 WIN = pygame.display.set_mode((570, 800))
@@ -32,7 +32,17 @@ def run(config_path):
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "config-feedforward.txt")
-    if TRAINING:
+    play_vs_ai(config_path)
+
+    """"
+    mode = input("Choisissez le mode (train/test/play): ").lower()
+
+    if mode == "train":
         run(config_path)
-    else:
+    elif mode == "test":
         test_best_genome(config_path)
+    elif mode == "play":
+        play_vs_ai(config_path)
+    else:
+        print("Mode invalide. Veuillez choisir 'train', 'test' ou 'play'.")
+    """
