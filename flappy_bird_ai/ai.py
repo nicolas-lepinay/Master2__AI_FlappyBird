@@ -1,8 +1,8 @@
 import neat
 import pickle
 import pygame
-from game import Bird, Pipe, Base
-from utils import FLOOR, WIN_WIDTH, WIN
+from game import Bird, Pipe, Base, UserQuitException
+from utils import FLOOR, WIN_WIDTH, WIN, quit_btn_img
 
 gen = 0
 
@@ -46,6 +46,9 @@ def eval_genomes(genomes, config):
     pipes = [Pipe(700)]
     score = 0
 
+    from game import Button
+    quit_button = Button(10, 10, quit_btn_img, 0.30)
+
     clock = pygame.time.Clock()
     run = True
     while run and len(birds) > 0:
@@ -56,6 +59,8 @@ def eval_genomes(genomes, config):
                 pygame.quit()
                 quit()
                 break
+            if quit_button.draw(WIN):
+                raise UserQuitException()
 
         pipe_ind = 0
         if len(birds) > 0:
@@ -104,8 +109,8 @@ def eval_genomes(genomes, config):
                 ge.pop(birds.index(bird))
                 birds.pop(birds.index(bird))
 
-        from game import draw_window # Import localement
-        draw_window(WIN, birds, pipes, base, score, gen, pipe_ind)
+        from game import draw_window_training # Import localement
+        draw_window_training(WIN, birds, pipes, base, score, gen, pipe_ind, quit_button)
 
     return # Implicit return
 
@@ -128,6 +133,9 @@ def test_best_genome(config_path):
     pipes = [Pipe(700)]
     score = 0
 
+    from game import Button
+    quit_button = Button(10, 10, quit_btn_img, 0.30)
+
     clock = pygame.time.Clock()
     run = True
     while run:
@@ -137,6 +145,9 @@ def test_best_genome(config_path):
                 run = False
                 pygame.quit()
                 quit()
+            if quit_button.draw(WIN):
+                run = False
+                return
 
         pipe_ind = 0
         if len(pipes) > 1 and bird.x > pipes[0].x + pipes[0].PIPE_TOP.get_width():
@@ -171,8 +182,8 @@ def test_best_genome(config_path):
         if bird.y + bird.img.get_height() >= FLOOR or bird.y < -50:
             run = False
 
-        from game import draw_window # Import localement
-        draw_window(WIN, [bird], pipes, base, score, 0, pipe_ind)
+        from game import draw_window_testing # Import localement
+        draw_window_testing(WIN, [bird], pipes, base, score, 0, pipe_ind, quit_button)
 
     print("Test terminé. Score final :", score)
 
@@ -210,6 +221,9 @@ def play_vs_ai(config_path):
     score_player = 0
     score_ai = 0
 
+    from game import Button
+    quit_button = Button(10, 10, quit_btn_img, 0.30)
+
     clock = pygame.time.Clock()
     run = True
 
@@ -226,6 +240,9 @@ def play_vs_ai(config_path):
                     player.jump()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 player.jump()
+            if quit_button.draw(WIN):
+                run = False
+                return
 
         # Logique de l'IA pour sauter
         pipe_ind = 0
@@ -280,7 +297,7 @@ def play_vs_ai(config_path):
             run = False
 
         from game import draw_window_vs_ai # Import localement
-        draw_window_vs_ai(WIN, player, ai_bird, pipes, base, score_player, score_ai)
+        draw_window_vs_ai(WIN, player, ai_bird, pipes, base, score_player, score_ai, quit_button)
 
     #pygame.quit()
     #quit()

@@ -94,7 +94,7 @@ class Pipe:
         self.set_height()
 
     def set_height(self):
-        self.height = random.randrange(130, 370)
+        self.height = random.randrange(125, 375)
         self.top = self.height - self.PIPE_TOP.get_height()
         self.bottom = self.height + self.GAP
 
@@ -146,8 +146,42 @@ class Base:
         win.blit(self.IMG, (self.x1, self.y))
         win.blit(self.IMG, (self.x2, self.y))
 
+
+# ▶️
+class Button:
+    def __init__(self, x, y, image, scale):
+        width = image.get_width()
+        height = image.get_height()
+
+        self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.clicked = False
+
+    def draw(self, surface):
+        action = False
+        # Get mouse position
+        pos = pygame.mouse.get_pos()
+
+        # Check mouseover and clicked conditions
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                self.clicked = True
+                action = True
+
+        # Réinitialisation du clic quand le bouton est relâché
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+        # Draw button on screen
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+        return action
+
+class UserQuitException(Exception):
+    pass
+
 # 🖼️
-def draw_window(win, birds, pipes, base, score, gen, pipe_ind):
+def draw_window_training(win, birds, pipes, base, score, gen, pipe_ind, quit_button):
     from utils import bg_img, STAT_FONT, DRAW_LINES # Import localement pour éviter les dépendances circulaires
     if gen == 0:
         gen = 1
@@ -170,13 +204,42 @@ def draw_window(win, birds, pipes, base, score, gen, pipe_ind):
     gen_label = STAT_FONT.render("Gens : " + str(gen-1),1,(255,255,255))
     alive_label = STAT_FONT.render("Alive : " + str(len(birds)),1,(255,255,255))
 
+    quit_button.draw(win)
     win.blit(score_label, (WIN_WIDTH - score_label.get_width() - 15, 10))
-    win.blit(gen_label, (10, 10))
-    win.blit(alive_label, (10, 50))
+    win.blit(gen_label, (10, 50))
+    win.blit(alive_label, (10, 90))
 
     pygame.display.update()
 
-def draw_window_vs_ai(win, player, ai_bird, pipes, base, score_player, score_ai):
+# 🖼️
+def draw_window_testing(win, birds, pipes, base, score, gen, pipe_ind, quit_button):
+    from utils import bg_img, STAT_FONT, DRAW_LINES # Import localement pour éviter les dépendances circulaires
+    if gen == 0:
+        gen = 1
+    win.blit(bg_img, (0,0))
+
+    for pipe in pipes:
+        pipe.draw(win)
+
+    base.draw(win)
+    for bird in birds:
+        if DRAW_LINES:
+            try:
+                pygame.draw.line(win, (255,0,0), (bird.x+bird.img.get_width()/2, bird.y + bird.img.get_height()/2), (pipes[pipe_ind].x + pipes[pipe_ind].PIPE_TOP.get_width()/2, pipes[pipe_ind].height), 5)
+                pygame.draw.line(win, (255,0,0), (bird.x+bird.img.get_width()/2, bird.y + bird.img.get_height()/2), (pipes[pipe_ind].x + pipes[pipe_ind].PIPE_BOTTOM.get_width()/2, pipes[pipe_ind].bottom), 5)
+            except:
+                pass
+        bird.draw(win)
+
+    score_label = STAT_FONT.render("Score : " + str(score),1,(255,255,255))
+
+    quit_button.draw(win)
+    win.blit(score_label, (WIN_WIDTH - score_label.get_width() - 15, 10))
+
+    pygame.display.update()
+
+# 🥊
+def draw_window_vs_ai(win, player, ai_bird, pipes, base, score_player, score_ai, quit_button):
     from utils import bg_img, STAT_FONT # Import localement pour éviter les dépendances circulaires
     win.blit(bg_img, (0, 0))
 
@@ -195,7 +258,18 @@ def draw_window_vs_ai(win, player, ai_bird, pipes, base, score_player, score_ai)
     score_label_ai = STAT_FONT.render("IA : " + str(score_ai), 1, (255, 0, 0)) # Couleur rouge pour l'IA
     win.blit(score_label_ai, (10, 50))
     """
+
+    quit_button.draw(win)
     score_label = STAT_FONT.render("Score : " + str(score_ai),1,(255,255,255))
     win.blit(score_label, (WIN_WIDTH - score_label.get_width() - 15, 10))
 
+    pygame.display.update()
+
+# 📋
+def draw_menu(win, train_button, test_button, play_button):
+    from utils import bg_img
+    win.blit(bg_img, (0, 0))
+    win.blit(train_button.image, (train_button.rect.x, train_button.rect.y))
+    win.blit(test_button.image, (test_button.rect.x, test_button.rect.y))
+    win.blit(play_button.image, (play_button.rect.x, play_button.rect.y))
     pygame.display.update()
